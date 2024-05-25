@@ -3,19 +3,16 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 function App() {
-    const [rawPayload, setRawPayload] = useState(null);
-    const [sessionNotes, setSessionNotes] = useState({});
+
+    const [sessionDates, setSessionDates] = useState([]);
+    const [rawPayload, setRawPayload] = useState({})
+    const [sessionInfo, setSessionInfo] = useState([]);
 
     useEffect(() => {
         axios.get('https://growth.vehikl.com/growth_sessions/week?date=2024-02-26')
             .then(response => {
-                setRawPayload(response.data);
-
-                const userNotes = localStorage.getItem('userNotes');
-                if (userNotes)
-                {
-                    setSessionNotes(JSON.parse(userNotes));
-                }
+            setSessionDates(Object.keys(response.data));
+            setRawPayload(response.data);
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -23,54 +20,30 @@ function App() {
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('userNotes', JSON.stringify(sessionNotes));
-    }, [sessionNotes]);
+        if (rawPayload && sessionDates) {
+            const nonEmptyDates = sessionDates.filter(date => rawPayload[date].length !== 0);
+            const info = nonEmptyDates.map(date => rawPayload[date]);
+            setSessionInfo(info);
+        }
+    }, [rawPayload, sessionDates]);
 
-    const parseData = (data, targetDate) => {
-        if (!data || !targetDate || !data[targetDate]) return null;
+    function displaySessionInfo(sessions) {
+        return sessions.map(sessionArray => (
+            <div key={sessionArray[0].id} className="Session">
+                <h2>Title: {sessionArray[0].title}</h2>
+                <p>Description: {sessionArray[0].topic}</p>
+            </div>
+        ));
+    }
 
-        const sessions = data[targetDate];
-
-        return sessions.map(session => ({
-            title: session.title,
-            date: session.date,
-            note: sessionNotes[session.title] || ''
-        }));
-    };
-
-    const handleNoteChange = (title, note) => {
-        setSessionNotes(prevNotes => ({
-            ...prevNotes,
-            [title]: note
-        }));
-    };
+    console.log(sessionInfo);
 
     return (
         <div className="App">
-            <header className="App-header">
-                {rawPayload && Object.keys(rawPayload).map(date => {
-                    const sessions = parseData(rawPayload, date);
-                    return (
-                        <div key={date}>
-                            <h3>Date: {date}</h3>
-                            {sessions.length > 0 ? (
-                                sessions.map(session => (
-                                    <div key={session.title}>
-                                        <p>Title: {session.title}</p>
-                                        <textarea
-                                            value={session.note}
-                                            onChange={e => handleNoteChange(session.title, e.target.value)}
-                                            placeholder="Add note..."
-                                        />
-                                    </div>
-                                ))
-                            ) : (
-                                <p>No sessions available for this date</p>
-                            )}
-                        </div>
-                    );
-                })}
-            </header>
+            <h1>Growth Sessions</h1>
+            <div className="SessionList">
+                {displaySessionInfo(sessionInfo)}
+            </div>
         </div>
     );
 }
