@@ -4,15 +4,15 @@ import axios from "axios";
 
 function App() {
 
+    const [rawPayload, setRawPayload] = useState({});
     const [sessionDates, setSessionDates] = useState([]);
-    const [rawPayload, setRawPayload] = useState({})
     const [sessionInfo, setSessionInfo] = useState([]);
 
     useEffect(() => {
         axios.get('https://growth.vehikl.com/growth_sessions/week?date=2024-02-26')
             .then(response => {
-            setSessionDates(Object.keys(response.data));
-            setRawPayload(response.data);
+                setRawPayload(response.data);
+                setSessionDates(Object.keys(response.data));
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -32,6 +32,7 @@ function App() {
             <div key={sessionArray[0].id} className="Session">
                 <h2>Title: {sessionArray[0].title}</h2>
                 <p>Description: {sessionArray[0].topic}</p>
+                <textarea placeholder="Add notes..."></textarea>
             </div>
         ));
     }
