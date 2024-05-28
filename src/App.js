@@ -7,7 +7,7 @@ function App() {
     const [rawPayload, setRawPayload] = useState({});
     const [sessionDates, setSessionDates] = useState([]);
     const [sessionInfo, setSessionInfo] = useState([]);
-    const [userNotes, setUserNotes] = useState('');
+    const [userNotes, setUserNotes] = useState({id: '', notes: ''});
 
     useEffect(() => {
         axios.get('https://growth.vehikl.com/growth_sessions/week?date=2024-02-26')
@@ -33,13 +33,19 @@ function App() {
             <div key={sessionArray[0].id} className="Session">
                 <h2>Title: {sessionArray[0].title}</h2>
                 <p>Description: {sessionArray[0].topic}</p>
-                <textarea onChange={handleUserNotes} id="userNotes" value={userNotes}
-                          placeholder="Add notes..."></textarea>
+                <textarea
+                    onChange={(event) => handleUserNotes(event, sessionArray[0].id)}
+                    value={userNotes.id === sessionArray[0].id ? userNotes.notes : ""}
+                    placeholder="Add notes..."
+                />
             </div>
         ));
     }
 
-    const handleUserNotes = event => setUserNotes(event.target.value);
+    const handleUserNotes = (event, sessionId) => {
+        const newNotes = {...userNotes, id: sessionId, notes: event.target.value};
+        setUserNotes(newNotes);
+    };
 
     console.log(userNotes);
 
