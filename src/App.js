@@ -7,7 +7,7 @@ function App() {
     const [rawPayload, setRawPayload] = useState({});
     const [sessionDates, setSessionDates] = useState([]);
     const [sessionInfo, setSessionInfo] = useState([]);
-    const [userNotes, setUserNotes] = useState({id: '', notes: ''});
+    const [userNotes, setUserNotes] = useState({});
 
     useEffect(() => {
         axios.get('https://growth.vehikl.com/growth_sessions/week?date=2024-02-26')
@@ -29,21 +29,25 @@ function App() {
     }, [rawPayload, sessionDates]);
 
     function displaySessionInfo(sessions) {
-        return sessions.map(sessionArray => (
-            <div key={sessionArray[0].id} className="Session">
-                <h2>Title: {sessionArray[0].title}</h2>
-                <p>Description: {sessionArray[0].topic}</p>
-                <textarea
-                    onChange={(event) => handleUserNotes(event, sessionArray[0].id)}
-                    value={userNotes.id === sessionArray[0].id ? userNotes.notes : ""}
-                    placeholder="Add notes..."
-                />
-            </div>
-        ));
+        return sessions.map(sessionArray => {
+            const sessionId = sessionArray[0].id;
+            const sessionNotes = userNotes[sessionId] || '';
+            return (
+                <div key={sessionId} className="Session">
+                    <h2>Title: {sessionArray[0].title}</h2>
+                    <p>Description: {sessionArray[0].topic}</p>
+                    <textarea
+                        onChange={(event) => handleUserNotes(event, sessionId)}
+                        value={sessionNotes}
+                        placeholder="Add notes..."
+                    />
+                </div>
+            );
+        });
     }
 
     const handleUserNotes = (event, sessionId) => {
-        const newNotes = {...userNotes, id: sessionId, notes: event.target.value};
+        const newNotes = { ...userNotes, [sessionId]: event.target.value };
         setUserNotes(newNotes);
     };
 
